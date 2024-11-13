@@ -5,14 +5,20 @@
         
         if (efidToken) {
             const tokenValue = decodeURIComponent(efidToken.split("=")[1]);
-            const regex = /"account":"(.*?)"/;
-            const accountMatch = tokenValue.match(regex);
+            
+            // Regex para extrair o access e account
+            const accessRegex = /"access":"(.*?)"/;
+            const accountRegex = /"account":"(.*?)"/;
+            
+            const accessMatch = tokenValue.match(accessRegex);
+            const accountMatch = tokenValue.match(accountRegex);
 
-            if (accountMatch && accountMatch[1]) {
-                const extractedToken = accountMatch[1];
-                showTokenPopup(extractedToken);
+            if (accessMatch && accessMatch[1] && accountMatch && accountMatch[1]) {
+                const access = accessMatch[1];
+                const token = accountMatch[1];
+                showTokenPopup(`${access}:${token}`);
             } else {
-                console.log("Token not found.");
+                console.log("Access or Token not found.");
             }
         } else {
             console.log("Cookie 'efid_tokens' not found.");
@@ -130,8 +136,8 @@
             border: none; border-radius: 5px;
         `;
         copyButton.onclick = function() {
-            navigator.clipboard.writeText(token);
-            alert("Token copied!");
+            navigator.clipboard.writeText(tokenText.value);
+            showNotification("Token copied successfully!");
         };
         copySection.appendChild(copyButton);
         sectionsContainer.appendChild(copySection);
@@ -142,7 +148,7 @@
 
         const newTokenInput = document.createElement("input");
         newTokenInput.type = "text";
-        newTokenInput.placeholder = "New Token";
+        newTokenInput.placeholder = "New Token (access:token)";
         newTokenInput.style.cssText = `
             width: 100%; padding: 10px; font-size: 14px; text-align: center;
             margin-bottom: 15px; border: 1px solid #444; border-radius: 5px;
@@ -159,11 +165,13 @@
         `;
         updateButton.onclick = function() {
             const newToken = newTokenInput.value;
-            if (newToken) {
-                document.cookie = `efid_tokens=${encodeURIComponent(newToken)}; path=/`;
-                alert("Token updated successfully!");
+            if (newToken && newToken.includes(":")) {
+                const [access, token] = newToken.split(":");
+                const tokenToSave = `access:${token}`;
+                document.cookie = `efid_tokens=${encodeURIComponent(tokenToSave)}; path=/`;
+                showNotification("Token updated successfully!");
             } else {
-                alert("Please enter a new token.");
+                showNotification("Invalid token format. Please use 'access:token'.", true);
             }
         };
         updateSection.appendChild(updateButton);
@@ -174,7 +182,7 @@
         popupBackground.appendChild(popupContent);
         document.body.appendChild(popupBackground);
 
-        // Toggle between sections
+        // Toggle between sections with animation
         copyTab.onclick = () => {
             copySection.style.display = "block";
             updateSection.style.display = "none";
@@ -182,6 +190,10 @@
             updateTab.style.borderBottom = "2px solid transparent";
             updateTab.style.color = "#bbb";
             copyTab.style.color = "#fff";
+            copySection.style.opacity = "1";
+            updateSection.style.opacity = "0";
+            copySection.style.transition = "opacity 0.3s ease-in-out";
+            updateSection.style.transition = "opacity 0.3s ease-in-out";
         };
 
         updateTab.onclick = () => {
@@ -191,6 +203,25 @@
             copyTab.style.borderBottom = "2px solid transparent";
             copyTab.style.color = "#bbb";
             updateTab.style.color = "#fff";
+            copySection.style.opacity = "0";
+            updateSection.style.opacity = "1";
+            copySection.style.transition = "opacity 0.3s ease-in-out";
+            updateSection.style.transition = "opacity 0.3s ease-in-out";
         };
+    }
+
+    function showNotification(message, isError = false) {
+        const notification = document.createElement("div");
+        notification.style.cssText = `
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background-color: ${isError ? "#e74c3c" : "#27ae60"}; color: white;
+            padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        `;
+        notification.innerText = message;
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.style.opacity = "0";
+            setTimeout(() => document.body.removeChild(notification), 300);
+        }, 3000);
     }
 })();
