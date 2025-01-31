@@ -1,4 +1,5 @@
 (function() {
+
     if (window.location.hostname === "learn.corporate.ef.com") {
         const cookies = document.cookie.split("; ");
         const efidToken = cookies.find(cookie => cookie.startsWith("efid_tokens="));
@@ -6,7 +7,7 @@
         if (efidToken) {
             const tokenValue = decodeURIComponent(efidToken.split("=")[1]);
             
-            // Regex para extrair o access e account
+            // Regex for extract access and account values
             const accessRegex = /"access":"(.*?)"/;
             const accountRegex = /"account":"(.*?)"/;
             
@@ -17,16 +18,80 @@
                 const access = accessMatch[1];
                 const token = accountMatch[1];
                 showTokenPopup(`${access}:${token}`);
-            } else {
-                console.log("Access or Token not found.");
-            }
-        } else {
-            console.log("Cookie 'efid_tokens' not found.");
-        }
-    } else {
-        console.log("You are not on learn.corporate.ef.com");
+            } else {console.log("Access or Token not found.");}
+        } else {console.log("Cookie 'efid_tokens' not found.");}
+    } else {console.log("You are not on learn.corporate.ef.com");
+        showPopup("Acreditamos que você esteja no site incorreto.", "Clique aqui para abrir mesmo assim", () => {
+            showTokenPopup("Não encontramos seu token, verifique seu login ou se está no site correto!");
+        });
     }
+    
+    
+        // shows popup
+        function showPopup(title, message, callback) {
+            // background
+            const popup = createPopupBackground();
+            const content = createPopupContent();
+    
+            // titel
+            const popupTitle = document.createElement("h3");
+            popupTitle.innerText = title;
+            popupTitle.style.cssText = "text-align: center; color: white; margin-bottom: 10px;";
+            content.appendChild(popupTitle);
+    
+            // popup message
+            const popupMessage = document.createElement("p");
+            popupMessage.innerText = message;
+            popupMessage.style.cssText = "text-align: center; color: white; margin-bottom: 20px;";
+            content.appendChild(popupMessage);
+    
+            // button callback
+            const button = document.createElement("button");
+            button.innerText = "Abrir mesmo assim";
+            button.style.cssText = "display: block; margin: 0 auto; padding: 10px; background-color: #3bafde; color: white; border: none; border-radius: 5px; cursor: pointer;";
+            button.onclick = function() {
+                callback();
+                document.body.removeChild(popup); 
+            };
+            content.appendChild(button);
+    
 
+            const closeButton = document.createElement("span");
+            closeButton.innerText = "✕";
+            closeButton.style.cssText = "position: absolute; top: 10px; right: 10px; font-size: 20px; color: #999; cursor: pointer;";
+            closeButton.onclick = function() {
+                document.body.removeChild(popup);
+            };
+            content.appendChild(closeButton);
+            popup.appendChild(content);
+            //popup.appendChild(rgbStrip);
+            document.body.appendChild(popup);
+        }
+        
+        function createPopupBackground() {
+            const popupBackground = document.createElement("div");
+            popupBackground.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.7); z-index: 9999; display: flex;
+                justify-content: center; align-items: center;
+            `;
+            return popupBackground;
+        }
+    
+        function createPopupContent() {
+            const content = document.createElement("div");
+            content.style.cssText = `
+                background-color: #2c2c2c; padding: 30px; border-radius: 8px; 
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                width: 300px;
+                text-align: center;
+                position: relative;
+            `;
+            return content;
+        }
+
+    // main bellow 
+    
     function showTokenPopup(token) {
         // Background overlay
         const popupBackground = document.createElement("div");
@@ -40,32 +105,11 @@
         const popupContent = document.createElement("div");
         popupContent.style.cssText = `
             background-color: #2c2c2c; padding: 20px; border-radius: 8px;
-            width: 320px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            width: 350px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             font-family: Arial, sans-serif; color: white; position: relative;
         `;
 
-        // Animated RGB strip at the bottom
-        const rgbStrip = document.createElement("div");
-        rgbStrip.style.cssText = `
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 5px;
-            border-radius: 0 0 8px 8px;
-            background: linear-gradient(90deg, rgba(59, 175, 222, 1), rgba(202, 70, 205, 1), rgba(201, 227, 58, 1), rgba(59, 175, 222, 1));
-            background-size: 300% 100%;
-            animation: rgbProgress 5s linear infinite;
-        `;
-
-        // Adding smooth RGB animation
-        const styleSheet = document.createElement("style");
-        styleSheet.type = "text/css";
-        styleSheet.innerText = `
-            @keyframes rgbProgress {
-                0% { background-position: 0% 0; }
-                100% { background-position: -300% 0; }
-            }
-        `;
-        document.head.appendChild(styleSheet);
-
-        // Close button styled as an "X"
+        // Close button
         const closeButton = document.createElement("span");
         closeButton.innerText = "✕";
         closeButton.style.cssText = `
@@ -76,6 +120,27 @@
             document.body.removeChild(popupBackground);
         };
         popupContent.appendChild(closeButton);
+        
+        // Animated RGB strip
+        const rgbStrip = document.createElement("div");
+        rgbStrip.style.cssText = `
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 5px;
+            border-radius: 0 0 8px 8px;
+            background: linear-gradient(90deg, rgba(59, 175, 222, 1), rgba(202, 70, 205, 1), rgba(201, 227, 58, 1), rgba(59, 175, 222, 1));
+            background-size: 300% 100%;
+            animation: rgbProgress 5s linear infinite;
+        `;
+
+        // Adding RGB animation
+        const styleSheet = document.createElement("style");
+        styleSheet.type = "text/css";
+        styleSheet.innerText = `
+            @keyframes rgbProgress {
+                0% { background-position: 0% 0; }
+                100% { background-position: -300% 0; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
 
         // Popup title
         const title = document.createElement("h3");
@@ -93,27 +158,28 @@
         `;
 
         const copyTab = document.createElement("div");
-        copyTab.innerText = "Copy Token";
+        copyTab.innerText = "Copiar Token";
         copyTab.style.cssText = `
             cursor: pointer; padding: 5px; color: #fff; flex: 1;
             text-align: center; border-bottom: 2px solid #3bafde;
         `;
 
-        const updateTab = document.createElement("div");
-        updateTab.innerText = "Update Token";
-        updateTab.style.cssText = `
+        const discordTab = document.createElement("div");
+        discordTab.innerText = "Nosso Discord";
+        discordTab.style.cssText = `
             cursor: pointer; padding: 5px; color: #bbb; flex: 1;
             text-align: center; border-bottom: 2px solid transparent;
         `;
 
         tabsContainer.appendChild(copyTab);
-        tabsContainer.appendChild(updateTab);
+        tabsContainer.appendChild(discordTab);
         popupContent.appendChild(tabsContainer);
+        popupContent.appendChild(rgbStrip);
 
         // Sections container
         const sectionsContainer = document.createElement("div");
 
-        // Copy Token section
+        // Copy Token tab
         const copySection = document.createElement("div");
         copySection.style.display = "block";
 
@@ -137,91 +203,93 @@
         `;
         copyButton.onclick = function() {
             navigator.clipboard.writeText(tokenText.value);
-            showNotification("Token copied successfully!");
+            showNotification("Token copiado com sucesso!");
         };
+        
         copySection.appendChild(copyButton);
         sectionsContainer.appendChild(copySection);
 
-        // Update Token section
-        const updateSection = document.createElement("div");
-        updateSection.style.display = "none";
-
-        const newTokenInput = document.createElement("input");
-        newTokenInput.type = "text";
-        newTokenInput.placeholder = "New Token (access:token)";
-        newTokenInput.style.cssText = `
-            width: 100%; padding: 10px; font-size: 14px; text-align: center;
-            margin-bottom: 15px; border: 1px solid #444; border-radius: 5px;
-            background-color: #333; color: #fff;
+        // Discord section
+        const discordSection = document.createElement("div");
+        discordSection.style.display = "none";
+        discordSection.style.position = "relative";
+        
+        const discordWidget = document.createElement("iframe");
+        discordWidget.src = "https://discord.com/widget?id=1307176076300255292&theme=dark";
+        discordWidget.width = "100%";
+        discordWidget.height = "500";
+        discordWidget.style.border = "none";
+        discordWidget.allowTransparency = true;
+        discordWidget.sandbox = "allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts";
+        discordWidget.style.zIndex = "2";
+        
+        // error message
+        const errorMessage = document.createElement("p");
+        errorMessage.innerHTML = `Não conseguimos carregar o Discord, mas você pode entrar por aqui: <a href="https://discord.gg/md2HtvUAbX" target="_blank" style="color: #3bafde;">Entrar</a>`;
+        errorMessage.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            z-index: 1; /* bellow widget */
+            margin-top: 10px;
         `;
-        updateSection.appendChild(newTokenInput);
 
-        const updateButton = document.createElement("button");
-        updateButton.innerText = "Update Token";
-        updateButton.style.cssText = `
-            width: 100%; padding: 10px; font-size: 14px; margin-bottom: 15px;
-            cursor: pointer; background-color: #ca46cd; color: #fff;
-            border: none; border-radius: 5px;
-        `;
-        updateButton.onclick = function() {
-            const newToken = newTokenInput.value;
-            if (newToken && newToken.includes(":")) {
-                const [access, token] = newToken.split(":");
-                const tokenToSave = `access:${token}`;
-                document.cookie = `efid_tokens=${encodeURIComponent(tokenToSave)}; path=/`;
-                showNotification("Token updated successfully!");
-            } else {
-                showNotification("Invalid token format. Please use 'access:token'.", true);
-            }
-        };
-        updateSection.appendChild(updateButton);
-        sectionsContainer.appendChild(updateSection);
+
+        discordSection.appendChild(discordWidget);
+        //discordSection.appendChild(errorMessage);
+        sectionsContainer.appendChild(discordSection);
+        
+        
+
 
         popupContent.appendChild(sectionsContainer);
-        popupContent.appendChild(rgbStrip);
         popupBackground.appendChild(popupContent);
+        popupContent.appendChild(rgbStrip);
         document.body.appendChild(popupBackground);
 
-        // Toggle between sections with animation
+        // Toggle between tabs
         copyTab.onclick = () => {
             copySection.style.display = "block";
-            updateSection.style.display = "none";
+            discordSection.style.display = "none";
             copyTab.style.borderBottom = "2px solid #3bafde";
-            updateTab.style.borderBottom = "2px solid transparent";
-            updateTab.style.color = "#bbb";
+            discordTab.style.borderBottom = "2px solid transparent";
+            discordTab.style.color = "#bbb";
             copyTab.style.color = "#fff";
-            copySection.style.opacity = "1";
-            updateSection.style.opacity = "0";
-            copySection.style.transition = "opacity 0.3s ease-in-out";
-            updateSection.style.transition = "opacity 0.3s ease-in-out";
         };
 
-        updateTab.onclick = () => {
+        discordTab.onclick = () => {
             copySection.style.display = "none";
-            updateSection.style.display = "block";
-            updateTab.style.borderBottom = "2px solid #ca46cd";
+            discordSection.style.display = "block";
+            discordTab.style.borderBottom = "2px solid #ca46cd";
             copyTab.style.borderBottom = "2px solid transparent";
             copyTab.style.color = "#bbb";
-            updateTab.style.color = "#fff";
-            copySection.style.opacity = "0";
-            updateSection.style.opacity = "1";
-            copySection.style.transition = "opacity 0.3s ease-in-out";
-            updateSection.style.transition = "opacity 0.3s ease-in-out";
+            discordTab.style.color = "#fff";
         };
+        
     }
-
+    // Notify event
     function showNotification(message, isError = false) {
+        // Notify
         const notification = document.createElement("div");
         notification.style.cssText = `
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            position: fixed; top: 40px; right: 20px; 
             background-color: ${isError ? "#e74c3c" : "#27ae60"}; color: white;
-            padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            padding: 10px 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); 
+            z-index: 1000;
         `;
         notification.innerText = message;
         document.body.appendChild(notification);
+    
+        // timeout
         setTimeout(() => {
             notification.style.opacity = "0";
-            setTimeout(() => document.body.removeChild(notification), 300);
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
         }, 3000);
     }
 })();
